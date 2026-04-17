@@ -1,0 +1,37 @@
+1. Run the simulation about 6ms and close the simulation, then you will be able to see the output image.
+
+2. The reading part operates as a Verilog model of an image sensor/camera (output RGB data, HSYNC, VSYNC, HCLK). The Verilog image reading code is extremely useful for functional verification in real-time FPGA image/video projects. 
+
+3. In this project, I added the image processing part to make an example of image enhancement. You can easily remove the processing part to get only raw image data in the case that you want to use the image sensor model only for verifying your image processing design.
+
+4. The image saving into three separate RGB mems: Because Matlab code writes the image hexadecimal file from the last row to the first row, the RGB saving codes (org_R, org_B, org_G) do the same in reading the temp_BMP memory to save RGB data correctly. You can change it accordingly if you want to do it differently.
+
+5. You might find the following explanation for the BMP header useful if you want to change the image size:
+Image size = 768*512*3= 1179648 bytes
+BMP header = 54 bytes
+BMP File size = Image size + BMP Header = 1179702 Bytes 
+Convert it to hexadecimal numbers: 1179702 in Decimal = 120036 in Hexadecimal
+Then 4-byte size of BMP file: 00H, 12 in Hexa = 18 Decimal, 00H, 36 in Hexa = 54 Decimal
+That's how we get the following values:
+BMP_header[ 2] = 54;
+BMP_header[ 3] = 0 ;
+BMP_header[ 4] = 18;
+BMP_header[ 5] = 0 ;
+Image width = 768 => In hexadecimal: 0x0300. The 4 bytes of the image width are 0, 3, 0, 0. That's how you get the following values:
+BMP_header[18] = 0;
+BMP_header[19] = 3;
+BMP_header[20] = 0;
+BMP_header[21] = 0; 
+Image height = 512 => In hexadecimal: 0x0200. The 4 bytes of the image width are 0, 2, 0, 0. That's how we get the following values:
+BMP_header[22] = 0;
+BMP_header[23] = 2;
+BMP_header[24] = 0;
+BMP_header[25] = 0;
+
+6. You should not synthesize this code because it is not designed for running on FPGA, but rather for functional verification purposes.  If you really want to synthesize this code (read and process) and load the image into FPGA for processing directly on FPGA, replace all the temp. variables (org_R, org_B, org_G, tmp_BMP = total_memory) by block RAMs and generate addresses to read the image data (remove the always @(start) and all the "for loops" - these are for simulation purposes). There are two ways: 1. write a RAM code and initialize the image data into the memory using $readmemh; 2. generate a block memory using either Xilinx Core Generator or Altera MegaFunction and load the image data into the initial values of memory (.coe file for Xilinx Core Gen. and .mif for Altera MegaFunction), then read the image data from memory and process it (FSM Design). 
+
+7. In this project, two even and old pixels are read at the same time for speeding up the processing, but you can change the number of pixels being read depending on your design.   
+
+8. The writing Verilog code is also very helpful for testing purposes as you can see the output in BMP format.
+
+9. If you want to do real-time image processing, you can check this for the camera interface code: Basys 3 FPGA OV7670 Camera
